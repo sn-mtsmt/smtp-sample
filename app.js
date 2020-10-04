@@ -6,6 +6,7 @@ const dotenv = require("dotenv");
 // mailer
 const nodemailer = require("nodemailer");
 const smime = require("nodemailer-smime");
+const smtpapi = require("smtpapi");
 
 const app = express();
 const port = 3000;
@@ -30,11 +31,19 @@ const mailer = nodemailer.createTransport(setting);
 mailer.use("stream", smime(options));
 
 app.get("/", (_req, res) => {
+  const tos = ["to@test.com"];
+
+  const header = new smtpapi();
+  header.setTos(tos);
+  header.addSubstitution("fullname", ["受信 ユーザー"]);
+  header.addSubstitution("familyname", ["受信"]);
+
   const email = {
     from: "from@test.com",
     to: "to@test.com",
     subject: "send subject",
-    html: "<strong>send contents</strong>"
+    html: "<strong>send contents</strong>",
+    headers: { "x-smtpapi": header.jsonString() }
   };
 
   mailer.sendMail(email, (e, r) => {
